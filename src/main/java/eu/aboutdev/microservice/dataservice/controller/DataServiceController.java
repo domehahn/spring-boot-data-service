@@ -19,7 +19,7 @@ public class DataServiceController {
 
     private final DataRepository dataRepository;
 
-    //@Cacheable(value = "events", key = "#eventId")
+    @Cacheable(value = "events", key = "#eventId")
     @GetMapping("/data/{eventId}")
     public List<String> findByCustomerId(@PathVariable("eventId") Long eventId) {
         log.info("EventId in: {}", eventId);
