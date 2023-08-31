@@ -49,5 +49,5 @@ jobs:
       - name: Build and push the data-service Docker image
         run: |
           task jib
-          docker tag event-service:latest ghcr.io/domehahn/data-service:latest
+          docker tag data-service:latest ghcr.io/domehahn/data-service:latest
           docker push ghcr.io/domehahn/data-service:latest
