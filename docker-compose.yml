@@ -1,0 +1,132 @@
+services:
+
+  redis-master:
+    container_name: redis-master
+    image: 'bitnami/redis:latest'
+    restart: always
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=redispassword
+    ports:
+      - 6379:6379
+    networks:
+      - config-server_microservice-network
+
+  redis-slave:
+    container_name: redis-slave
+    image: 'bitnami/redis:latest'
+    restart: always
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis-master
+      - REDIS_MASTER_PASSWORD=redispassword
+      - REDIS_PASSWORD=redispassword
+    ports:
+      - 7000:6379
+    depends_on:
+      - redis-master
+    networks:
+      - config-server_microservice-network
+
+  redis-sentinel-1:
+    image: 'bitnami/redis-sentinel:latest'
+    container_name: sentinel-1
+    restart: always
+    environment:
+      - REDIS_MASTER_SET=redis-master
+      - REDIS_MASTER_HOST=127.0.0.1
+      - REDIS_MASTER_PASSWORD=redispassword
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
+    depends_on:
+      - redis-master
+      - redis-slave
+    ports:
+      - 26379:26379
+    networks:
+      - config-server_microservice-network
+
+  redis-sentinel-2:
+    image: 'bitnami/redis-sentinel:latest'
+    container_name: sentinel-2
+    restart: always
+    environment:
+      - REDIS_MASTER_SET=redis-master
+      - REDIS_MASTER_HOST=127.0.0.1
+      - REDIS_MASTER_PASSWORD=redispassword
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
+    depends_on:
+      - redis-master
+      - redis-slave
+    ports:
+      - 26380:26379
+    networks:
+      - config-server_microservice-network
+
+  redis-sentinel-3:
+    image: 'bitnami/redis-sentinel:latest'
+    container_name: sentinel-3
+    restart: always
+    environment:
+      - REDIS_MASTER_SET=redis-master
+      - REDIS_MASTER_HOST=127.0.0.1
+      - REDIS_MASTER_PASSWORD=redispassword
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=10000
+    depends_on:
+      - redis-master
+      - redis-slave
+    ports:
+      - 26381:26379
+    networks:
+      - config-server_microservice-network
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - 8001:8001
+    volumes:
+      - redisinsight_data:/db
+    networks:
+      - config-server_microservice-network
+
+  mongodb-data:
+    image: mongo:latest
+    container_name: mongodb-data
+    ports:
+      - 27017:27017
+    env_file:
+      - ./mongodb/mongodb-data.env
+    environment:
+      - MONGO_INITDB_DATABASE=data_db
+    healthcheck:
+      test:  echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - config-server_microservice-network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    ports:
+      - 27020:8081
+    env_file:
+      - ./mongo-express/mongo-express.env
+    volumes:
+      - mongodb_data:/data/db
+    depends_on:
+      mongodb-data:
+        condition: service_healthy
+    networks:
+      - config-server_microservice-network
+
+volumes:
+  redisinsight_data:
+  mongodb_data:
+
+networks:
+  config-server_microservice-network:
+    external: true
