@@ -7,6 +7,15 @@ spring:
       port: 8500
       config:
         format: YAML
+        enabled: true
+      discovery:
+        prefer-ip-address: true
+        health-check-path: ${server.servlet.context-path:}/actuator/health
+        health-check-interval: 15s
+        health-check-timeout: 90s
+        health-check-critical-timeout: 3m
+        instanceId: "${spring.application.name}:${random.int[1,999999]}"
+        instanceZone: zone1
     gateway:
       discovery:
         locator:
@@ -23,3 +32,7 @@ spring:
     import: "configserver:"
   main:
     allow-bean-definition-overriding: true
+logging:
+  config: ${spring.cloud.config.uri}/${spring.application.name}/${spring.profiles.active}/main/${spring.application.name}/${spring.profiles.active}/logback-spring.xml
+server:
+  port: 0
