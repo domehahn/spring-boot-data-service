@@ -33,6 +33,6 @@ spring:
   main:
     allow-bean-definition-overriding: true
 logging:
-  config: ${spring.cloud.config.uri}/logback-spring.xml
+  config: ${spring.cloud.config.uri}/${spring.application.name}/${spring.profiles.active}/logback-spring.xml
 server:
   port: 0
